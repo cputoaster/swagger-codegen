@@ -19,11 +19,55 @@ class {{classname}} {
   {{^isDateTime}}
     {{name}} =
     {{#complexType}}
-        {{#isListContainer}}{{complexType}}.listFromJson(json['{{name}}']){{/isListContainer}}{{^isListContainer}}
-        {{#isMapContainer}}{{complexType}}.mapFromJson(json['{{name}}']){{/isMapContainer}}
-        {{^isMapContainer}}new {{complexType}}.fromJson(json['{{name}}']){{/isMapContainer}}{{/isListContainer}}
+        {{#isListContainer}}
+            {{#items}}
+                {{#isPrimitiveType}}
+                    new List<{{{datatype}}}>();
+                    json['{{name}}'].foreach((dynamic value) => {{name}}.add(json[value]));
+                {{/isPrimitiveType}}
+                {{^isPrimitiveType}}
+                    {{#isListContainer}}
+                        {{#items}}
+                            {{#isPrimitiveType}}
+            new List<List<{{{datatype}}}>>();
+            json['{{name}}'].foreach((dynamic value) {
+                var item = new List<{{{datatype}}}>();
+                {{name}}.add(item);
+                value.foreach((dynamic value2) =>
+                    item.add(json[value]));
+            });
+                            {{/isPrimitiveType}}
+                            {{^isPrimitiveType}}
+                                {{#isListContainer}}
+            new List<List<List<{{complexType}}>>>();
+            json['{{name}}'].foreach((dynamic value) {
+                var item = new List<List<{{complexType}}>>();
+                {{name}}.add(item);
+                value.foreach((dynamic value2) =>
+                    item.add({{complexType}}.listFromJson(json[value])));
+            });
+
+                                {{/isListContainer}}
+                                {{^isListContainer}}
+                                    new List<List<{{complexType}}>>();
+                                    json['{{name}}'].foreach((dynamic value) => {{name}}.add({{complexType}}.listFromJson(json[value])));
+                                {{/isListContainer}}
+                            {{/isPrimitiveType}}
+                        {{/items}}
+                    {{/isListContainer}}
+                    {{^isListContainer}}
+                        {{complexType}}.listFromJson(json['{{name}}']);
+                    {{/isListContainer}}
+                {{/isPrimitiveType}}
+
+            {{/items}}
+        {{/isListContainer}}
+        {{^isListContainer}}
+            {{#isMapContainer}}{{complexType}}.mapFromJson(json['{{name}}']);{{/isMapContainer}}
+            {{^isMapContainer}}new {{complexType}}.fromJson(json['{{name}}']);{{/isMapContainer}}
+        {{/isListContainer}}
     {{/complexType}}
-    {{^complexType}}json['{{name}}']{{/complexType}};
+    {{^complexType}}json['{{name}}'];{{/complexType}}
   {{/isDateTime}}
   {{/vars}}
   }
